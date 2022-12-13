@@ -1,4 +1,5 @@
-Provision an EC2 instance with terraform
+**Provision an EC2 instance with terraform**
+
 Write a terraform module representing an EC2 instance with an EBS volume and elastic IP address attached.
 
 In this directory, you will find a VPC and security group set up to allow SSH. You will need to copy your public key into this directory and rename it to public_key. In instance.tf you will find a module block called challenge, note the variables and outputs and implement the module code in the instance subdirectory.
@@ -6,6 +7,7 @@ In this directory, you will find a VPC and security group set up to allow SSH. Y
 When we receive your solution, we will init, plan, and apply it to our AWS environment in order to evaluate that it completes without error and implements the requirements completely.
 
 Acceptance Criteria
+
 Do not use an open-source community terraform module. You must implement a module that creates the instance, ebs volume, elasitc IP, and attaches those resources inside of the instance/ subdirectory.
 You should not need to modify the tf files in the ec2-instance directory. Your task is to create a module that implements the challenge module interface (variables and outputs). If you feel you need to modify these files, you will be expected to explain why.
 Your solution is expected to init, plan, and apply cleanly without any errors.
