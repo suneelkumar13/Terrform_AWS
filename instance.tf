@@ -1,32 +1,30 @@
-provider "aws" {
-  
-  region     = var.region
-  access_key = var.key
-  secret_key = var.sec_key
-}
-
 module "challenge" {
-  source  = "./instance/"
+  source = "./instance/"
 
-  name = "challenge"
+  ami_id             = data.aws_ami.ubuntu.id
+  subnet_id          = module.vpc.public_subnets[0]
+  availability_zone  = module.vpc.azs[0]
+  instance_type      = "t3.micro"
+  ssh_key_name       = aws_key_pair.challenge.key_name
+  security_group_ids = [module.server-sg.security_group_id]
+  root_volume_type   = "gp2"
+  root_volume_size   = "10"
+  ebs_volume_type    = "gp2"
+  ebs_volume_size    = "100"
 
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = var.instance_type
-  key_name               = aws_key_pair.challenge.key_name
-  monitoring             = true
-  vpc_security_group_ids = [module.server-sg.security_group_id]
-  subnet_id              = module.vpc.public_subnets[0]
-  ebs_block_device = [ {
-   device_name = "/dev/xvda"
-   volume_size = 100
-   volume_type = "gp2"
-} ]
-
-
-  tags = {
-    Terraform   = "true"
-    Environment = "challenge"
-  }
+  user_data = <<-EOT
+  #!/usr/bin/env bash
+  while ! ls /dev/nvme1n1 &> /dev/null
+  do
+    sleep 5
+  done
+  if ! blkid -o value -s TYPE /dev/nvme1n1 &> /dev/null
+  then
+    mkfs.xfs /dev/nvme1n1
+  fi
+  mkdir -p /mnt/volume
+  mount /dev/nvme1n1 /mnt/volume
+  EOT
 }
 
 resource "aws_key_pair" "challenge" {
@@ -34,11 +32,10 @@ resource "aws_key_pair" "challenge" {
   public_key = file("${path.module}/public_key")
 }
 
-resource "aws_eip" "challenge" {
-  vpc      = true
+output "public_ip" {
+  value = module.challenge.instance_ip
 }
 
-resource "aws_eip_association" "challenge" {
-  instance_id   = module.challenge.id
-  allocation_id = aws_eip.challenge.id
+output "instance_id" {
+  value = module.challenge.instance_id
 }
